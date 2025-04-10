@@ -1,6 +1,7 @@
 # Minimal Rust Playground
 
 A simple web-based playground for running Rust code in the browser.
+![Alt text for the image](./rust-playground.png)
 
 ## Project Structure
 
