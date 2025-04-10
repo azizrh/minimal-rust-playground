@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Rust Playground</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .playground {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .editor-container {
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .CodeMirror {
+            height: 400px;
+            font-size: 16px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .run-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .run-button:hover {
+            background-color: #45a049;
+        }
+        
+        .run-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .examples select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .output-container {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            min-height: 100px;
+        }
+        
+        .output {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .output-success {
+            color: #4CAF50;
+        }
+        
+        .output-error {
+            color: #f44336;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Minimal Rust Playground</h1>
+        
+        <div class="playground">
+            <div class="controls">
+                <button id="runButton" class="run-button">▶ Run</button>
+                <div class="examples">
+                    <select id="exampleSelect">
+                        <option value="">-- Select Example --</option>
+                        <option value="hello">Hello World</option>
+                        <option value="fibonacci">Fibonacci</option>
+                        <option value="structs">Structs and Methods</option>
+                        <option value="error">Error Handling</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="editor-container">
+                <textarea id="codeEditor"></textarea>
+            </div>
+            
+            <div class="output-container">
+                <div id="output" class="output">// Output will appear here</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/rust/rust.min.js"></script>
+    <script>
+        // Initialize CodeMirror
+        const codeEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+            lineNumbers: true,
+            mode: 'rust',
+            theme: 'dracula',
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            lineWrapping: true,
+            autoCloseBrackets: true,
+            matchBrackets: true
+        });
+        
+        // Set default code
+        codeEditor.setValue(`fn main() {
+    println!("Hello, Rust Playground!");
+}`);
+        
+        // Example code snippets
+        const examples = {
+            hello: `fn main() {
+    println!("Hello, Rust Playground!");
+}`,
+            fibonacci: `fn fibonacci(n: u32) -> u32 {
+    if n <= 1 {
+        return n;
+    }
+    fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+fn main() {
+    println!("First 10 Fibonacci numbers:");
+    for i in 0..10 {
+        println!("fibonacci({}) = {}", i, fibonacci(i));
+    }
+}`,
+            structs: `#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+    
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle { width: 30, height: 50 };
+    let rect2 = Rectangle { width: 10, height: 40 };
+    
+    println!("rect1 is {:#?}", rect1);
+    println!("The area of rect1 is {} square pixels", rect1.area());
+    println!("Can rect1 hold rect2? {}", rect1.can_hold(&rect2));
+}`,
+            error: `use std::fs::File;
+use std::io::{self, Read};
+
+fn read_file() -> Result<String, io::Error> {
+    let mut file = File::open("hello.txt")?;
+    let mut s = String::new();
+    file.read_to_string(&mut s)?;
+    Ok(s)
+}
+
+fn main() {
+    match read_file() {
+        Ok(contents) => println!("File contents: {}", contents),
+        Err(error) => println!("Error reading file: {}", error),
+    }
+}`
+        };
+        
+        // Event listeners
+        document.getElementById('runButton').addEventListener('click', runCode);
+        document.getElementById('exampleSelect').addEventListener('change', function() {
+            const selectedExample = this.value;
+            if (selectedExample && examples[selectedExample]) {
+                codeEditor.setValue(examples[selectedExample]);
+            }
+        });
+        
+        // Function to run the code
+        async function runCode() {
+            const code = codeEditor.getValue();
+            const outputElement = document.getElementById('output');
+            const runButton = document.getElementById('runButton');
+            
+            // Disable run button and show loading message
+            runButton.disabled = true;
+            outputElement.className = 'output loading';
+            outputElement.textContent = 'Running code...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    outputElement.className = 'output output-success';
+                    outputElement.textContent = result.output || 'Program executed successfully (no output)';
+                } else {
+                    outputElement.className = 'output output-error';
+                    outputElement.textContent = result.error || 'Unknown error occurred';
+                }
+            } catch (error) {
+                outputElement.className = 'output output-error';
+                outputElement.textContent = `Failed to connect to the server: ${error.message}
+                
+Make sure the backend is running at http://localhost:8080`;
+            } finally {
+                // Re-enable run button
+                runButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

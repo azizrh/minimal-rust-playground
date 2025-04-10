@@ -61,6 +61,3 @@ This is a minimal playground intended for educational purposes. In a production 
 - Setting up memory and CPU limits
 - Adding timeouts for long-running code
 
-## License
-
-This project is available under the MIT License.
